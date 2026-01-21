@@ -2,6 +2,7 @@ import type { Options } from "@anthropic-ai/claude-agent-sdk";
 import { join, dirname } from "path";
 import { homedir } from "os";
 import { debug } from "../utils/debug";
+import { getClaudeSettingsEnv } from "../config";
 
 declare const CRAFT_AGENT_CLI_VERSION: string | undefined;
 
@@ -39,6 +40,10 @@ export function setExecutable(path: string) {
 }
 
 export function getDefaultOptions(): Partial<Options> {
+    // Get environment variables from ~/.claude/settings.json
+    // These are merged with process.env and optionsEnv, with later values taking precedence
+    const claudeSettingsEnv = getClaudeSettingsEnv();
+
     // If custom path is set (e.g., for Electron), use it with minimal options
     if (customPathToClaudeCodeExecutable) {
         const options: Partial<Options> = {
@@ -47,7 +52,8 @@ export function getDefaultOptions(): Partial<Options> {
             executable: (customExecutable || 'bun') as 'bun',
             env: {
                 ...process.env,
-                ... optionsEnv,
+                ...claudeSettingsEnv,
+                ...optionsEnv,
                 // Propagate debug mode from argv flag OR existing env var
                 CRAFT_DEBUG: (process.argv.includes('--debug') || process.env.CRAFT_DEBUG === '1') ? '1' : '0',
             }
@@ -72,7 +78,8 @@ export function getDefaultOptions(): Partial<Options> {
             env: {
                 ...process.env,
                 BUN_BE_BUN: '1',
-                ... optionsEnv,
+                ...claudeSettingsEnv,
+                ...optionsEnv,
                 // Propagate debug mode from argv flag OR existing env var
                 CRAFT_DEBUG: (process.argv.includes('--debug') || process.env.CRAFT_DEBUG === '1') ? '1' : '0',
             }
@@ -80,8 +87,9 @@ export function getDefaultOptions(): Partial<Options> {
     }
     return {
         env: {
-            ... process.env,
-            ... optionsEnv,
+            ...process.env,
+            ...claudeSettingsEnv,
+            ...optionsEnv,
             // Propagate debug mode from argv flag OR existing env var
             CRAFT_DEBUG: (process.argv.includes('--debug') || process.env.CRAFT_DEBUG === '1') ? '1' : '0',
         }

@@ -7,3 +7,6 @@ export {
   createConfigWatcher,
   type ConfigWatcherCallbacks,
 } from './watcher.ts';
+
+// Claude Code settings integration
+export { getClaudeSettingsEnv } from './claude-settings.ts';
